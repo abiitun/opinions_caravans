@@ -1,2 +1,2 @@
-# opinions_caravans
-Code for paper about opinions towards migrant caravans
+# Understanding opinions towards migrants in transit: An analysis of tweets on Migrant Caravans in the US and Mexico
+Abigail Tun-Mendicuti, Jisu Kim, and Clara H. Mulder. 2024. Understanding opinions towards migrants in transit: An analysis of tweets on Migrant Caravans in the US and Mexico. In Proceedings of the 16th ACM Web Science Conference (WEBSCI '24). Association for Computing Machinery, New York, NY, USA, 1–10. https://doi.org/10.1145/3614419.3644008
