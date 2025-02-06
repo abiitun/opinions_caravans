@@ -1,0 +1,109 @@
+---
+title: "MigCar_models_final"
+author: "Abi"
+date: "2023-10-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r data, include = FALSE}
+#Data preparation and libraries
+library(tidyverse)
+library(sandwich)
+library(lmtest)
+library(sjPlot)
+library(stargazer)
+
+#L|.............oad Data
+load("~/DATA_ANALYSIS.RData")
+
+
+#Make non-border states as reference category
+#Absolute value of average new tone
+#rescaled absolute value of average news tone
+
+data_analysis_MX_2018<-data_analysis_MX_2018 %>% 
+  mutate(vader_abs = abs(vader)) %>%
+  mutate(ntca_s=ntca*100) %>% 
+  mutate(region_b = factor(region_b, levels = c("Other", "North border", "South border"))) %>% 
+  mutate(abs_ave_tone = abs(ave_tone)) %>%
+  mutate(abs_ave_tone_s = abs_ave_tone/100) %>% 
+  mutate(mig_vol_s=100*mig_vol) %>% 
+  mutate(mig_vol_day_time_lag_s = 100*mig_news_day_time_lag) %>% 
+  mutate(mig_vol_day_lag_s = 100 * mig_vol_day_lag) %>% 
+  mutate(abs_ave_tone_day_time_lag_s = abs(ave_tone_day_time_lag)/100) %>% 
+  mutate(abs_ave_tone_day_lag_s = abs(ave_tone_day_lag)/100)
+
+data_analysis_US_2018 <- data_analysis_US_2018 %>% 
+  mutate(ntca_s=ntca*100) %>% 
+  mutate(vader_abs = abs(vader)) %>% 
+  mutate(region_b = factor(region_b, levels = c("Other", "Border"))) %>% 
+  mutate(abs_ave_tone = abs(ave_tone)) %>% 
+  mutate(abs_ave_tone_s = abs_ave_tone/100) %>% 
+  mutate(mig_vol_s=100*mig_vol) %>% 
+  mutate(mig_vol_day_time_lag_s = 100*mig_news_day_time_lag) %>% 
+  mutate(mig_vol_day_lag_s = 100 * mig_vol_day_lag) %>% 
+  mutate(abs_ave_tone_day_time_lag_s = abs(ave_tone_day_time_lag)/100) %>% 
+  mutate(abs_ave_tone_day_lag_s = abs(ave_tone_day_lag)/100)
+
+
+data_analysis_MX<-data_analysis_MX_2018 
+data_analysis_US<-data_analysis_US_2018
+
+```
+
+```{r robust, include=FALSE}
+#For robust standard errors
+se_robust <- function(x){
+  coeftest(x,  vcov = vcovCL, cluster = ~ ntca_s)[, "Std. Error"]
+}
+se_robust2 <- function(x){
+  coeftest(x, vcov = vcovCL, cluster = ~ntca+day)[, "Std. Error"]
+}
+```
+
+
+##Models for Mexico
+
+```{r}
+models_MX_2<-list(
+  mod2.2.mx<-lm(vader_abs ~  abs_ave_tone_s + mig_vol_s + region_b + year, data_analysis_MX),
+  mod2.3.mx<-lm(vader_abs ~  abs_ave_tone_s + mig_vol_s + ntca_s + year, data_analysis_MX),
+  mod2.4.mx<-lm(vader_abs ~  abs_ave_tone_s + mig_vol_s + ntca_s + region_b + year, data_analysis_MX),
+  mod2.5.mx<-lm(vader_abs ~  abs_ave_tone_s + mig_vol_s + ntca_s * region_b + year, data_analysis_MX)
+)
+stargazer(models_MX_2, 
+          type = "text",
+          se=lapply(models_MX_2, se_robust),
+          no.space = TRUE,
+          column.sep.width = "-15pt", # to reduce column width
+          font.size = "small",
+          align = TRUE, 
+          out="~/models_mx_2.htm")
+```
+
+
+
+##Models for the US
+
+```{r}
+models_US_2<-list(
+  mod2.2.us<-lm(vader_abs ~ abs_ave_tone_s + mig_vol_s + region_b + year + tweet_lang, data_analysis_US),
+  mod2.3.us<-lm(vader_abs ~ abs_ave_tone_s + mig_vol_s + ntca_s + year + tweet_lang, data_analysis_US),
+  mod2.4.us<-lm(vader_abs ~ abs_ave_tone_s + mig_vol_s + ntca_s + region_b + year + tweet_lang, data_analysis_US),
+  mod2.5.us<-lm(vader_abs ~ abs_ave_tone_s + mig_vol_s + ntca_s * region_b + year + tweet_lang, data_analysis_US)
+)
+
+stargazer(models_US_2, 
+          type = "text",
+          se=lapply(models_US_2, se_robust),
+          no.space = TRUE,
+          column.sep.width = "-15pt", # to reduce column width
+          font.size = "small",
+          align = TRUE,
+          out="~/models_us_2.htm")
+```
+
